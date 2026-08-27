@@ -1,0 +1,24 @@
+.auth-container
+  .auth-card
+    .auth-brand
+      .logo-icon 💸
+      h1 Splitwise
+      p Welcome back! Please sign in to track expenses.
+
+    = simple_form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "login-form", autocomplete: "off" }) do |f|
+      .mb-3
+        label.form-label.fw-semibold for="user_email" Email address
+        = f.input :email, input_html: { autocomplete: 'email', class: 'form-control form-control-lg', id: 'user_email', placeholder: 'name@example.com' }, label: false, wrapper: false, required: true
+
+      .mb-4
+        .d-flex.justify-content-between.align-items-center.mb-1
+          label.form-label.fw-semibold.mb-0 for="user_password" Password
+          = link_to "Forgot password?", new_user_password_path, class: "text-decoration-none small text-muted"
+        = f.input :password, input_html: { autocomplete: 'current-password', class: 'form-control form-control-lg', id: 'user_password', placeholder: '••••••••' }, label: false, wrapper: false, required: true
+
+      = f.button :button, "Log in", class: "w-100 btn btn-splitwise btn-lg", type: :submit
+
+    .auth-divider
+      span Don't have an account?
+
+    = link_to "Sign up for Splitwise", new_user_registration_path, class: "w-100 btn btn-outline-splitwise btn-lg d-block text-center text-decoration-none"

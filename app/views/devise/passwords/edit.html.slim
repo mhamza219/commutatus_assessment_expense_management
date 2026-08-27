@@ -1,0 +1,25 @@
+.auth-container
+  .auth-card
+    .auth-brand
+      .logo-icon 🔑
+      h1 Change Password
+      p Enter your new password below.
+
+    = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "password-change-form", autocomplete: "off" }) do |f|
+      = render "devise/shared/error_messages", resource: resource
+      = f.input :reset_password_token, as: :hidden
+
+      .mb-3
+        label.form-label.fw-semibold for="user_password" New Password
+        = f.input :password, input_html: { autocomplete: 'new-password', class: 'form-control form-control-lg', id: 'user_password', placeholder: 'At least 6 characters' }, label: false, wrapper: false, required: true
+
+      .mb-4
+        label.form-label.fw-semibold for="user_password_confirmation" Confirm New Password
+        = f.input :password_confirmation, input_html: { autocomplete: 'new-password', class: 'form-control form-control-lg', id: 'user_password_confirmation', placeholder: 'Re-enter your new password' }, label: false, wrapper: false, required: true
+
+      = f.button :button, "Change My Password", class: "w-100 btn btn-splitwise btn-lg", type: :submit
+
+    .auth-divider
+      span Remembered your old password?
+
+    = link_to "Back to log in", new_user_session_path, class: "w-100 btn btn-outline-splitwise btn-lg d-block text-center text-decoration-none"

@@ -1,0 +1,16 @@
+.git
+.gitignore
+.dockerignore
+log/*
+tmp/*
+!log/.keep
+!tmp/.keep
+storage/*
+!storage/.keep
+node_modules
+vendor/bundle
+public/assets
+config/master.key
+spec/examples.txt
+dump.rdb
+.byebug_history

@@ -1,0 +1,19 @@
+header
+  nav.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark
+    .container-fluid
+      = link_to 'Splitwise', root_path, class: 'navbar-brand fw-bold'
+      button.navbar-toggler aria-controls="navbarCollapse" aria-expanded="false" aria-label=("Toggle navigation") data-bs-target="#navbarCollapse" data-bs-toggle="collapse" type="button" 
+        span.navbar-toggler-icon
+      .d-flex
+        #navbarNavDarkDropdown.collapse.navbar-collapse
+          ul.navbar-nav
+            li.nav-item.dropdown
+              a#navbarDarkDropdownMenuLink.nav-link.dropdown-toggle aria-expanded="false" data-bs-toggle="dropdown" href="#" role="button" 
+                = current_user&.name.presence || 'Account'
+              ul.dropdown-menu.dropdown-menu-dark.dropdown-menu-end aria-labelledby="navbarDarkDropdownMenuLink" 
+                li
+                  = link_to 'Dashboard', root_path, class: 'dropdown-item'
+                li
+                  hr.dropdown-divider
+                li
+                  = button_to 'Logout', destroy_user_session_path, method: :delete, class: 'dropdown-item text-danger', form_class: 'd-inline'

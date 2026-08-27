@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+# Remove a potentially pre-existing server.pid for Rails.
+if [ -f /app/tmp/pids/server.pid ]; then
+  rm -f /app/tmp/pids/server.pid
+fi
+
+# Run database migrations / setup automatically if database is accessible
+if [ -n "$DATABASE_URL" ]; then
+  echo "Running database setup / migrations..."
+  ./bin/rails db:prepare || echo "db:prepare failed or already prepared"
+fi
+
+# Execute the container's main process (what's set as CMD in the Dockerfile).
+exec "$@"

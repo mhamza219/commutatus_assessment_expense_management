@@ -1,0 +1,79 @@
+.dashboard-wrapper
+  = render 'shared/sidebar'
+
+  .main-area
+    .top-bar
+      .d-flex.align-items-center
+        img.user-img.me-2 alt="profile" src="https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png" style="width: 38px; height: 38px;" /
+        h1.top-bar-title.mb-0 = @friend.name
+      .top-bar-actions
+        button.btn.btn-primary type="button" data-bs-toggle="modal" data-bs-target="#expenseModal"
+          | ➕ Add an expense
+        button.btn.btn-success type="button" data-bs-toggle="modal" data-bs-target="#settleUpModal"
+          | 🤝 Settle up
+
+    .p-3.border-bottom.bg-light.d-flex.justify-content-between.align-items-center
+      span.text-muted.small Relationship Summary:
+      - if @balance_with_friend > 0
+        span.badge.bg-success.fs-6
+          | #{@friend.name} owes you $#{sprintf('%.2f', @balance_with_friend)}
+      - elsif @balance_with_friend < 0
+        span.badge.bg-danger.fs-6
+          | You owe #{@friend.name} $#{sprintf('%.2f', -@balance_with_friend)}
+      - else
+        span.badge.bg-secondary.fs-6
+          | You and #{@friend.name} are all settled up!
+
+    .expenses-list
+      - if @expenses.empty?
+        .text-center.p-5.text-muted
+          p.mb-2 🏖️ No expenses recorded between you and #{@friend.name} yet.
+          button.btn.btn-sm.btn-primary data-bs-toggle="modal" data-bs-target="#expenseModal"
+            | Add the first expense
+      - else
+        - @expenses.each do |expense|
+          - you_paid = (expense.paid_by_id == current_user.id)
+          - your_split = expense.expense_splits.find { |s| s.user_id == current_user.id }&.amount_owed || 0.0
+          - friend_split = expense.expense_splits.find { |s| s.user_id == @friend.id }&.amount_owed || 0.0
+
+          .expense-item.border-bottom.py-3.px-4.d-flex.justify-content-between.align-items-center.position-relative
+            .item-lhs.d-flex.align-items-center
+              .text-center.me-3.p-2.bg-light.border.rounded style="min-width: 55px;"
+                .text-uppercase.text-muted style="font-size: 10px; font-weight: bold;"
+                  = expense.date ? expense.date.strftime("%b") : expense.created_at.strftime("%b")
+                .fw-bold.text-dark style="font-size: 16px; line-height: 1;"
+                  = expense.date ? expense.date.strftime("%d") : expense.created_at.strftime("%d")
+              div
+                p.mb-0.fw-bold.text-dark = expense.description
+                - if expense.expense_items.any?
+                  small.text-muted
+                    = expense.expense_items.map { |i| "#{i.name} ($#{sprintf('%.2f', i.amount)})" }.join(', ')
+                    - if expense.tax.to_f > 0
+                      |  + Tax ($#{sprintf('%.2f', expense.tax)})
+
+            .item-rhs.d-flex.align-items-center.pe-4
+              .you-details.text-end.me-4
+                p.text-muted.small.mb-0
+                  = you_paid ? "you paid" : "#{expense.paid_by.name} paid"
+                p.fw-bold.mb-0.text-dark
+                  | $#{sprintf('%.2f', expense.amount)}
+
+              .you-details.text-end
+                - if you_paid
+                  p.text-muted.small.mb-0 you lent #{@friend.name}
+                  p.fw-bold.mb-0.text-success
+                    | $#{sprintf('%.2f', friend_split)}
+                - elsif expense.paid_by_id == @friend.id
+                  p.text-muted.small.mb-0 #{@friend.name} lent you
+                  p.fw-bold.mb-0.text-danger
+                    | $#{sprintf('%.2f', your_split)}
+                - else
+                  p.text-muted.small.mb-0 your share
+                  p.fw-bold.mb-0.text-muted
+                    | $#{sprintf('%.2f', your_split)}
+
+            = button_to expense_path(expense), method: :delete, data: { confirm: 'Are you sure you want to delete this expense?' }, class: 'remove-btn position-absolute top-50 end-0 translate-middle-y me-3 btn btn-link text-danger p-0 border-0', title: 'Delete Expense'
+              | ❌
+
+= render 'shared/add_expense_modal'
+= render 'shared/settle_up_modal'

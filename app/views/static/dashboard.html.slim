@@ -1,0 +1,69 @@
+.dashboard-wrapper
+  = render 'shared/sidebar'
+
+  .main-area
+    .top-bar
+      h1.top-bar-title Dashboard
+      .top-bar-actions
+        button.btn.btn-primary type="button" data-bs-toggle="modal" data-bs-target="#expenseModal"
+          | ➕ Add an expense
+        button.btn.btn-success type="button" data-bs-toggle="modal" data-bs-target="#settleUpModal"
+          | 🤝 Settle up
+
+    .dashboard-balances
+      .balances-bar
+        .balance-block
+          p.text-muted.text-uppercase total balance
+          - bal = @dashboard_summary[:total_balance]
+          - if bal > 0
+            p.text-success.fw-bold + $#{sprintf('%.2f', bal)}
+          - elsif bal < 0
+            p.text-danger.fw-bold - $#{sprintf('%.2f', -bal)}
+          - else
+            p.text-muted.fw-bold $0.00
+
+        .balance-block
+          p.text-muted.text-uppercase you owe
+          - owe = @dashboard_summary[:total_you_owe]
+          - if owe > 0
+            p.text-danger.fw-bold $#{sprintf('%.2f', owe)}
+          - else
+            p.text-muted.fw-bold $0.00
+
+        .balance-block
+          p.text-muted.text-uppercase you are owed
+          - owed = @dashboard_summary[:total_due_to_you]
+          - if owed > 0
+            p.text-success.fw-bold $#{sprintf('%.2f', owed)}
+          - else
+            p.text-muted.fw-bold $0.00
+
+      .dashboard-detail
+        .detail-block
+          h2.detail-title YOU OWE
+          - if @dashboard_summary[:friends_you_owe].empty?
+            p.text-muted.small.p-3 You do not owe anything.
+          - else
+            - @dashboard_summary[:friends_you_owe].each do |item|
+              = link_to person_path(item[:user]), class: 'text-decoration-none text-dark'
+                .user-detail.p-2.rounded.hover-bg
+                  img.user-img alt="profile" src="https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png" /
+                  .user-info
+                    p.fw-semibold = item[:user].name
+                    p.text-danger.small you owe $#{sprintf('%.2f', item[:amount])}
+
+        .detail-block
+          h2.detail-title YOU ARE OWED
+          - if @dashboard_summary[:friends_who_owe_you].empty?
+            p.text-muted.small.p-3 You are not owed anything.
+          - else
+            - @dashboard_summary[:friends_who_owe_you].each do |item|
+              = link_to person_path(item[:user]), class: 'text-decoration-none text-dark'
+                .user-detail.p-2.rounded.hover-bg
+                  img.user-img alt="profile" src="https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png" /
+                  .user-info
+                    p.fw-semibold = item[:user].name
+                    p.text-success.small owes you $#{sprintf('%.2f', item[:amount])}
+
+= render 'shared/add_expense_modal'
+= render 'shared/settle_up_modal'

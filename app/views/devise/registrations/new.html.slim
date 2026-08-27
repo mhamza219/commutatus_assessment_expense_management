@@ -1,0 +1,36 @@
+.auth-container
+  .auth-card
+    .auth-brand
+      .logo-icon 💸
+      h1 Splitwise
+      p Create your free account to start splitting expenses.
+
+    = simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "signup-form", autocomplete: "off" }) do |f|
+      = render "devise/shared/error_messages", resource: resource
+
+      .mb-3
+        label.form-label.fw-semibold for="user_name" Full Name
+        = f.input :name, input_html: { autocomplete: 'name', class: 'form-control form-control-lg', id: 'user_name', placeholder: 'e.g. John Doe' }, label: false, wrapper: false, required: true
+
+      .mb-3
+        label.form-label.fw-semibold for="user_email" Email address
+        = f.input :email, input_html: { autocomplete: 'email', class: 'form-control form-control-lg', id: 'user_email', placeholder: 'name@example.com' }, label: false, wrapper: false, required: true
+
+      .mb-3
+        label.form-label.fw-semibold for="user_mobile_number" Mobile Number (optional)
+        = f.input :mobile_number, input_html: { autocomplete: 'tel', class: 'form-control form-control-lg', id: 'user_mobile_number', placeholder: '+1 (555) 000-0000' }, label: false, wrapper: false
+
+      .mb-3
+        label.form-label.fw-semibold for="user_password" Password
+        = f.input :password, input_html: { autocomplete: 'new-password', class: 'form-control form-control-lg', id: 'user_password', placeholder: 'At least 6 characters' }, label: false, wrapper: false, required: true
+
+      .mb-4
+        label.form-label.fw-semibold for="user_password_confirmation" Confirm Password
+        = f.input :password_confirmation, input_html: { autocomplete: 'new-password', class: 'form-control form-control-lg', id: 'user_password_confirmation', placeholder: 'Re-enter your password' }, label: false, wrapper: false, required: true
+
+      = f.button :button, "Sign up", class: "w-100 btn btn-splitwise btn-lg", type: :submit
+
+    .auth-divider
+      span Already have an account?
+
+    = link_to "Log in instead", new_user_session_path, class: "w-100 btn btn-outline-splitwise btn-lg d-block text-center text-decoration-none"

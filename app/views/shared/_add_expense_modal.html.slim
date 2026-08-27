@@ -1,0 +1,146 @@
+#expenseModal.modal.fade aria-hidden="true" aria-labelledby="expenseModalLabel" tabindex="-1"
+  .modal-dialog.modal-lg
+    .modal-content
+      = form_with model: @expense, url: expenses_path, method: :post, local: true, id: 'expense-form' do |f|
+        .modal-header.bg-primary.text-white
+          h5#expenseModalLabel.modal-title 🧾 Add an Expense (Itemized Bill)
+          button.btn-close.btn-close-white aria-label="Close" data-bs-dismiss="modal" type="button"
+
+        .modal-body
+          .row.g-3.mb-3
+            .col-md-6
+              = f.label :description, "Description / Title", class: 'form-label fw-bold'
+              = f.text_field :description, class: 'form-control', placeholder: 'e.g. Dinner, Groceries, Hotel', required: true
+
+            .col-md-3
+              = f.label :paid_by_id, "Paid By", class: 'form-label fw-bold'
+              = f.select :paid_by_id, options_for_select(User.all.map { |u| [u.id == current_user.id ? "#{u.name} (You)" : u.name, u.id] }, current_user.id), {}, class: 'form-select'
+
+            .col-md-3
+              = f.label :date, "Date", class: 'form-label fw-bold'
+              = f.date_field :date, value: Date.current, class: 'form-control'
+
+          hr
+
+          .d-flex.justify-content-between.align-items-center.mb-2
+            h6.fw-bold.mb-0 🍽️ Bill Items
+            button#add-item-btn.btn.btn-sm.btn-outline-primary type="button" + Add Another Item
+
+          #items-container
+            .item-row.border.rounded.p-3.mb-2.bg-light data-index="0"
+              .row.g-2.align-items-center
+                .col-md-4
+                  label.form-label.small.fw-bold Item Name
+                  input.form-control.form-control-sm.item-name-input name="expense[items][0][name]" placeholder="e.g. Juice, Pizza" required="required" type="text" /
+                .col-md-3
+                  label.form-label.small.fw-bold Amount ($)
+                  input.form-control.form-control-sm.item-amount-input min="0" name="expense[items][0][amount]" placeholder="0.00" required="required" step="0.01" type="number" /
+                .col-md-4
+                  label.form-label.small.fw-bold Split with / Assign to
+                  select.form-select.form-select-sm.item-participants-select multiple="multiple" name="expense[items][0][participant_ids][]" size="3"
+                    - User.all.each do |user|
+                      option selected="selected" value=user.id
+                        = user.id == current_user.id ? "#{user.name} (You)" : user.name
+                  small.text-muted style="font-size: 11px;" Hold Ctrl/Cmd to select multiple
+                .col-md-1.text-end
+                  button.btn.btn-sm.btn-outline-danger.remove-item-btn style="margin-top: 18px;" type="button" 🗑️
+
+          .row.g-3.mt-2.pt-2.border-top
+            .col-md-6
+              = f.label :tax, "Tax Amount ($) - Split equally among all members", class: 'form-label fw-bold'
+              = f.number_field :tax, value: 0.0, step: 0.01, min: 0, class: 'form-control', id: 'expense-tax-input'
+            .col-md-6.d-flex.flex-column.justify-content-center.align-items-end
+              .p-2.bg-white.border.rounded.w-100.text-end
+                span.text-muted.small Estimated Total Bill:
+                h4#total-bill-display.text-primary.fw-bold.mb-0 $0.00
+
+        .modal-footer
+          button.btn.btn-secondary data-bs-dismiss="modal" type="button" Cancel
+          = f.submit "Save Expense", class: 'btn btn-primary fw-bold'
+
+javascript:
+  function setupExpenseModal() {
+    let itemIndex = 1;
+    const itemsContainer = document.getElementById('items-container');
+    const addItemBtn = document.getElementById('add-item-btn');
+    const taxInput = document.getElementById('expense-tax-input');
+    const totalDisplay = document.getElementById('total-bill-display');
+    if (!itemsContainer || itemsContainer.dataset.initialized === 'true') return;
+    itemsContainer.dataset.initialized = 'true';
+
+    function updateTotal() {
+      let sum = 0;
+      document.querySelectorAll('.item-amount-input').forEach(function(input) {
+        const val = parseFloat(input.value) || 0;
+        sum += val;
+      });
+      const tax = parseFloat(taxInput ? taxInput.value : 0) || 0;
+      const total = sum + tax;
+      if (totalDisplay) {
+        totalDisplay.textContent = '$' + total.toFixed(2);
+      }
+    }
+
+    if (addItemBtn) {
+      addItemBtn.addEventListener('click', function() {
+        const firstSelect = document.querySelector('.item-participants-select');
+        const optionsHtml = firstSelect ? firstSelect.innerHTML : '';
+
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row border rounded p-3 mb-2 bg-light';
+        newRow.dataset.index = itemIndex;
+        newRow.innerHTML = `
+          <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Item Name</label>
+              <input type="text" name="expense[items][${itemIndex}][name]" class="form-control form-control-sm item-name-input" placeholder="e.g. Dessert, Side Dish" required />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-bold">Amount ($)</label>
+              <input type="number" step="0.01" min="0" name="expense[items][${itemIndex}][amount]" class="form-control form-control-sm item-amount-input" placeholder="0.00" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Split with / Assign to</label>
+              <select name="expense[items][${itemIndex}][participant_ids][]" class="form-select form-select-sm item-participants-select" multiple size="3">
+                ${optionsHtml}
+              </select>
+              <small class="text-muted" style="font-size: 11px;">Hold Ctrl/Cmd to select multiple</small>
+            </div>
+            <div class="col-md-1 text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" style="margin-top: 18px;">🗑️</button>
+            </div>
+          </div>
+        `;
+        itemsContainer.appendChild(newRow);
+        itemIndex++;
+      });
+    }
+
+    if (itemsContainer) {
+      itemsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-item-btn')) {
+          const rows = itemsContainer.querySelectorAll('.item-row');
+          if (rows.length > 1) {
+            e.target.closest('.item-row').remove();
+            updateTotal();
+          } else {
+            alert('A bill must have at least one item.');
+          }
+        }
+      });
+
+      itemsContainer.addEventListener('input', function(e) {
+        if (e.target.classList.contains('item-amount-input')) {
+          updateTotal();
+        }
+      });
+    }
+
+    if (taxInput) {
+      taxInput.addEventListener('input', updateTotal);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', setupExpenseModal);
+  document.addEventListener('turbo:load', setupExpenseModal);
+  document.addEventListener('turbolinks:load', setupExpenseModal);

@@ -1,0 +1,20 @@
+.auth-container
+  .auth-card
+    .auth-brand
+      .logo-icon 🔒
+      h1 Forgot Password?
+      p Enter your email address and we'll send you instructions to reset your password.
+
+    = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "password-reset-form", autocomplete: "off" }) do |f|
+      = render "devise/shared/error_messages", resource: resource
+
+      .mb-4
+        label.form-label.fw-semibold for="user_email" Email address
+        = f.input :email, input_html: { autocomplete: 'email', class: 'form-control form-control-lg', id: 'user_email', placeholder: 'name@example.com' }, label: false, wrapper: false, required: true
+
+      = f.button :button, "Send Reset Instructions", class: "w-100 btn btn-splitwise btn-lg", type: :submit
+
+    .auth-divider
+      span Remembered your password?
+
+    = link_to "Back to log in", new_user_session_path, class: "w-100 btn btn-outline-splitwise btn-lg d-block text-center text-decoration-none"

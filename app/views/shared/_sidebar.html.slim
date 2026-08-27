@@ -1,0 +1,87 @@
+aside.side-bar-area
+  .list-group.mb-3
+    = link_to root_path, class: "list-group-item list-group-item-action #{'active' if current_page?(root_path)}"
+      strong 📊 Dashboard
+
+  .friends-list
+    .friends-list-header.d-flex.justify-content-between.align-items-center.mb-2
+      span.fw-bold.text-uppercase FRIENDS
+      span#friends-count-badge.badge.bg-secondary.text-white = @friends.count
+
+    .mb-2
+      input#friend-search-input.form-control.form-control-sm placeholder="🔍 Search friend..." type="search" aria-label="Search friends"
+
+    #no-friends-match.text-muted.small.p-2.text-center.d-none
+      | No friends match your search.
+
+    #friends-items-list
+      - if @friends.empty?
+        p.text-muted.small.p-2 No friends found in the system.
+      - else
+        - @friends.each do |friend|
+          - bal = current_user.balance_with(friend)
+          - is_active = (controller_name == 'static' && action_name == 'person' && params[:id] == friend.id.to_s)
+          = link_to person_path(friend), class: "friend-name friend-item d-flex justify-content-between align-items-center #{'bg-light fw-bold text-primary' if is_active}", data: { name: friend.name.downcase }
+            span.text-truncate title=friend.name
+              | 👤 #{friend.name}
+            - if bal > 0
+              span.text-success.small.fw-bold +$#{sprintf('%.2f', bal)}
+            - elsif bal < 0
+              span.text-danger.small.fw-bold -$#{sprintf('%.2f', -bal)}
+            - else
+              span.text-muted.small $0.00
+
+javascript:
+  function setupFriendSearch() {
+    const searchInput = document.getElementById('friend-search-input');
+    const friendsList = document.getElementById('friends-items-list');
+    const noMatch = document.getElementById('no-friends-match');
+    const countBadge = document.getElementById('friends-count-badge');
+    if (!searchInput || !friendsList || searchInput.dataset.initialized === 'true') return;
+    searchInput.dataset.initialized = 'true';
+
+    searchInput.addEventListener('input', function() {
+      const query = searchInput.value.trim().toLowerCase();
+      const items = friendsList.querySelectorAll('.friend-item');
+      let visibleCount = 0;
+
+      items.forEach(function(item) {
+        const name = (item.dataset.name || item.textContent).toLowerCase();
+        if (query === '' || name.includes(query)) {
+          item.classList.remove('d-none');
+          item.classList.add('d-flex');
+          visibleCount++;
+        } else {
+          item.classList.add('d-none');
+          item.classList.remove('d-flex');
+        }
+      });
+
+      if (noMatch) {
+        if (visibleCount === 0 && items.length > 0) {
+          noMatch.classList.remove('d-none');
+        } else {
+          noMatch.classList.add('d-none');
+        }
+      }
+
+      if (countBadge) {
+        countBadge.textContent = query === '' ? items.length : visibleCount;
+      }
+
+      // Also filter user detail cards on dashboard if present
+      document.querySelectorAll('.dashboard-detail .user-detail').forEach(function(card) {
+        const cardParent = card.closest('a') || card;
+        const text = card.textContent.toLowerCase();
+        if (query === '' || text.includes(query)) {
+          cardParent.style.display = '';
+        } else {
+          cardParent.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', setupFriendSearch);
+  document.addEventListener('turbo:load', setupFriendSearch);
+  document.addEventListener('turbolinks:load', setupFriendSearch);
