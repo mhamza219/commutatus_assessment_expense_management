@@ -17,7 +17,7 @@ FROM base as build
 
 # Install build dependencies
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential libpq-dev git pkg-config && \
+    apt-get install --no-install-recommends -y build-essential libpq-dev git pkg-config libyaml-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
@@ -33,7 +33,7 @@ COPY . .
 RUN bundle exec bootsnap precompile app/ lib/
 
 # Precompile static assets for production without requiring production credentials
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 DATABASE_URL="postgresql://dummy@localhost/dummy" ./bin/rails assets:precompile
 
 # Final production stage
 FROM base
